@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: longhorn-ingress
+  namespace: longhorn-system
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # type of authentication
+    nginx.ingress.kubernetes.io/auth-type: basic
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+    # name of the secret that contains the user/password definitions
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    # message to display with an appropriate context why the authentication is required
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required '
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - longhorn.kendopz.com
+      secretName: tls-longhorn
+  rules:
+    - host: longhorn.kendopz.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: longhorn-frontend
+                port:
+                  number: 80

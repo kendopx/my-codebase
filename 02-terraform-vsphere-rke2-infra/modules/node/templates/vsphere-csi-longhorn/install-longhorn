@@ -1,0 +1,67 @@
+Prerequisites
+# For RHEL, CentOS, and EKS with EKS Kubernetes Worker AMI with AmazonLinux2 image, use this command:
+
+sudo yum install iscsi-initiator-utils -y 
+sudo systemctl start iscsid && sudo systemctl enable iscsid
+sudo systemctl status iscsid
+
+
+kubectl create ns longhorn-system 
+kubectl apply -f prerequisites/longhorn-iscsi-installation.yaml
+kubectl apply -f prerequisites/longhorn-nfs-installation.yaml 
+kubectl -n longhorn-system apply -f longhorn/longhorn.yaml
+kubectl -n longhorn-system apply -f post-install/longhorn-ingress.yaml
+kubectl get pods -n longhorn-system 
+
+
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+kubectl create namespace longhorn-system
+helm install longhorn longhorn/longhorn --namespace longhorn-system
+
+kubectl annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true --overwrite
+kubectl get storageclass
+kubectl get pvc 
+
+
+kubectl -n longhorn-system get pod
+kubectl -n longhorn-system get svc
+
+
+kubectl annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true --overwrite
+kubectl annotate storageclass vsphere-csi storageclass.kubernetes.io/is-default-class=false --overwrite
+kubectl get storageclass
+Prerequisites
+# For RHEL, CentOS, and EKS with EKS Kubernetes Worker AMI with AmazonLinux2 image, use this command:
+
+sudo yum install iscsi-initiator-utils -y 
+sudo systemctl start iscsid && sudo systemctl enable iscsid
+sudo systemctl status iscsid
+
+
+kubectl create ns longhorn-system 
+kubectl apply -f prerequisites/longhorn-iscsi-installation.yaml
+kubectl apply -f prerequisites/longhorn-nfs-installation.yaml 
+kubectl -n longhorn-system apply -f longhorn/longhorn.yaml
+kubectl -n longhorn-system apply -f post-install/longhorn-ingress.yaml
+kubectl get pods -n longhorn-system 
+
+
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+kubectl create namespace longhorn-system
+helm install longhorn longhorn/longhorn --namespace longhorn-system
+
+kubectl annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true --overwrite
+kubectl get storageclass
+kubectl get pvc 
+
+
+kubectl -n longhorn-system get pod
+kubectl -n longhorn-system get svc
+
+
+kubectl annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true --overwrite
+kubectl annotate storageclass vsphere-csi storageclass.kubernetes.io/is-default-class=false --overwrite
+kubectl get storageclass
+

@@ -1,0 +1,25 @@
+https://www.suse.com/c/rancher_blog/stateful-kubernetes-workloads-on-vsphere-with-rke/
+
+Set Up vSphere on RKE
+
+Additions to RKE cluster.yml
+
+1. Create a CPI secret
+2. Deploy the RBAC manifests for CPI.
+3. Set up RBAC for CSI provider
+4. Install the CSI controller
+5. Install the CSI node driver
+6. Apply this storage class
+
+kubectl create configmap cloud-config --from-file=1_cpi-vsphere.conf --namespace=kube-system --> kubectl get cm cloud-config -n kube-system
+kubectl create -f 2_cpi-secret.conf  --> kubectl get secret cpi-global-secret -n kube-system
+kubectl create -f  3_cloud-controller-manager-roles.yaml
+kubectl create -f  4_cloud-controller-manager-role-bindings.yaml
+kubectl create -f  5_cloud-provider.yaml
+kubectl create secret generic vsphere-config-secret --from-file=6_csi-vsphere.conf  --namespace=kube-system --> kubectl get secret vsphere-config-secret -n kube-ssytem
+kubectl apply -f 7_csi-driver-rbac.yaml
+kubectl create -f 8_csi-controller.yaml
+kubectl apply -f 9_csi-driver.yaml --> kubectl get CSINode
+kubectl apply -f 10_storage-class.yaml --> kubectl get pv
+
+kubectl --namespace longhorn-system port-forward --address 0.0.0.0 service/longhorn-frontend 5080:80

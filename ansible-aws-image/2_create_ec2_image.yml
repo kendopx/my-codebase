@@ -1,0 +1,41 @@
+### 1. Set the tags 
+---
+tags:
+  Name: "ansible-rhel9-demo-AMI"
+  Environment: "Production"
+
+### 2. Define the variables required for creating the AMI:
+---
+- name: Create an AMI from an existing EC2 instance
+  hosts: localhost
+  gather_facts: false
+  vars:
+    aws_access_key: "YOUR_AWS_ACCESS_KEY"
+    aws_secret_key: "YOUR_AWS_SECRET_KEY"
+    region: "us-east-2"
+    instance_id: "i-0abcd1234efgh5678"  # Replace with your EC2 instance ID
+    ami_name: "MyCustomAMI"              # Custom name for the AMI
+    ami_description: "AMI created from EC2 instance"
+
+### 3. Use the “ec2_ami” module to create the AMI:
+  tasks:
+    - name: Create AMI from EC2 instance
+      amazon.aws.ec2_ami:
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        region: "{{ region }}"
+        instance_id: "{{ instance_id }}"
+        name: "{{ ami_name }}"
+        description: "{{ ami_description }}"
+        wait: yes
+      register: ami
+
+    - name: Debug the AMI creation result
+      debug:
+        msg: "AMI creation successful. AMI ID: {{ ami.image_id }}"
+
+### 4. Add a debug message to display the AMI ID:
+    - name: Output AMI ID
+      debug:
+        msg: "The created AMI ID is: {{ ami.image_id }}"
+

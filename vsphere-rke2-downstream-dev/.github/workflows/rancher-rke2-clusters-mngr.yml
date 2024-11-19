@@ -1,0 +1,119 @@
+name: Terraform Plan and Apply on  Rke2 Manager Cluster
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+  workflow_dispatch:
+    inputs:
+        terraform-apply-rke2-dev-cluster-mngr:
+            description: "Do You Want To Terraform Apply Rke2 Downstream Dev Cluster (yes/no)"
+            required: true
+            default: "no"
+            type: choice
+            options:
+            - "yes"
+            - "no"
+
+        terraform-plan-rke2-dev-cluster-mngr:
+            description: "Do You Want To Terraform Apply Rke2 Downstream Dev Cluster (yes/no)"
+            required: true
+            default: "no"
+            type: choice
+            options:
+            - "yes"
+            - "no"
+
+        terraform-pir-ir-rke2-dev-cluster-mngr:
+            description: "Do You Want To Terraform Plan Apply With PIR & IR Rke2 Downstream Dev Cluster (yes/no)"
+            required: true
+            default: "no"
+            type: choice
+            options:
+            - "yes"
+            - "no"
+env:
+    AWS_ACCOUNT_NUMBER: 505648753038
+    GITHUB_TOKEN: ${{ secrets.G_PAT }}
+
+permissions: write-all
+
+jobs:
+
+  terraform-plan-rke2-dev-cluster-mngr:
+    name: Rke2 Dev Cluster Mngr Terraform Plan
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.event_name == 'push' || github.event.inputs.terraform-plan-rke2-dev-cluster-mngr == 'yes'
+    uses: kendops/terraform-gha-aws-oidc-config/.github/workflows/terraform-base.yml@main
+    secrets: inherit
+    with:
+      stage: rke2-dev-cluster-mngr
+      iam_role: "arn:aws:iam::505648753038:role/terraform-gha-oidc-role"
+      tf_mode: "plan"
+      # tf_workspace: "rke2-dev-cluster-mngr"
+      environment_directory: rancher-cluster-mngr
+      aws_region: "us-east-2"
+
+  rke2-dev-cluster-mngr-plan-pir-gen:
+    name: Generate PIR for Rke2 Dev Cluster Mngr on Aws
+    secrets: inherit
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.event_name == 'push' || github.event.inputs.terraform-plan-rke2-dev-cluster-mngr == 'yes' || github.event.inputs.terraform-pir-ir-rke2-dev-cluster-mngr == 'yes'
+    uses: kendops/terraform-gha-aws-oidc-config/.github/workflows/pir-and-ir.yml@main
+    needs: terraform-plan-rke2-dev-cluster-mngr
+    with:
+      stage: rke2-dev-cluster-mngr
+      iam_role: "arn:aws:iam::505648753038:role/terraform-gha-oidc-role"
+      tf_mode: "plan"
+      environment_directory: rancher-cluster-mngr
+      project_name: kendops-co
+      org_domain_name: kendops
+      deployment_time: 8
+      deployment_status: "success"
+      product_name: "Rke2 Dev Cluster Mngr on Aws"
+      deployment_cluster_name: "local"
+      aws_account_name: "kendops-aws-oidc-account"
+      code_commit_sha: ${{github.sha}}
+      code_git_ref: ${{github.ref}}
+      release_version: "v0.0.1"
+      aws_region: "us-east-2"
+      ir_s3_bucket: kendops-rke2-manager-state 
+
+  terraform-apply-rke2-dev-cluster-mngr:
+    name: Rke2 Dev Cluster Mngr Terraform Apply
+    if: github.event_name == 'workflow_dispatch'  && github.ref == 'refs/heads/main' || github.event_name == 'push' || github.event.inputs.terraform-apply-rke2-dev-cluster-mngr == 'yes' || github.event.inputs.terraform-pir-ir-rke2-dev-cluster-mngr == 'yes' 
+    uses: kendops/terraform-gha-aws-oidc-config/.github/workflows/terraform-base.yml@main
+    needs: [terraform-plan-rke2-dev-cluster-mngr]
+    secrets: inherit
+    with:
+      stage: rke2-dev-cluster-mngr
+      iam_role: "arn:aws:iam::505648753038:role/terraform-gha-oidc-role"
+      tf_mode: "apply"
+      environment_directory: rancher-cluster-mngr
+      aws_region: "us-east-2"
+      # tf_workspace: "rke2-dev-cluster-mngr"
+
+
+  rke2-dev-cluster-mngr-apply-ir-gen: 
+    name: Generate IR for Rke2 Dev Cluster Mngr on Aws
+    secrets: inherit
+    if: github.event_name == 'workflow_dispatch'  && github.ref == 'refs/heads/main' || github.event_name == 'push' || github.event.inputs.terraform-pir-ir-rke2-dev-cluster-mngr == 'yes' || github.event.inputs.terraform-apply-rke2-dev-cluster-mngr == 'yes' 
+    uses: kendops/terraform-gha-aws-oidc-config/.github/workflows/pir-and-ir.yml@main
+    needs: [terraform-apply-rke2-dev-cluster-mngr, rke2-dev-cluster-mngr-plan-pir-gen, rke2-dev-cluster-mngr-plan-pir-gen]
+    with:
+      stage: rke2-dev-cluster-mngr
+      iam_role: "arn:aws:iam::505648753038:role/terraform-gha-oidc-role"
+      tf_mode: "apply"
+      environment_directory: rancher-cluster-mngr
+      project_name: kendops-co
+      org_domain_name: kendops
+      deployment_time: 8
+      deployment_status: "success"
+      product_name: "Rke2 Dev Cluster Mngr on Aws"
+      deployment_cluster_name: "rke2-dev-cluster-mngr-plan"
+      aws_account_name: "kendops-aws-oidc-account"
+      code_commit_sha: ${{github.sha}}
+      code_git_ref: ${{github.ref}}
+      release_version: "v0.0.1"
+      aws_region: "us-east-2"
+      ir_s3_bucket: kendops-rke2-manager-state
+####################################### RKE2 Dev Cluster Mngr ############################################
